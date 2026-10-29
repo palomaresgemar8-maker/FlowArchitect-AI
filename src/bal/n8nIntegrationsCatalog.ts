@@ -211,17 +211,55 @@ export const N8N_FULL_INTEGRATIONS_CATALOG: LibraryNodeTemplate[] = [
   makeCore('core_ssh_ftp_command', 'HTTP & Core Network', 'action', 'terminal', 'SSH / SFTP / Execute Command', 'n8n-nodes-base.ssh', 'ssh:ExecuteCommand', 'SSH Runner', 'GHL Remote Script', 'action: execCommand / sftpUpload', 'Runs remote shell commands over SSH or transfers files via FTP/SFTP', 6),
   makeCore('core_rss_read', 'HTTP & Core Network', 'action', 'globe', 'RSS Read (Fetch Feed)', 'n8n-nodes-base.rssFeedRead', 'rss:ReadFeed', 'RSS by Zapier', 'GHL RSS Feed Read', 'action: fetchFeedItems', 'Fetches and parses syndication items from any RSS or Atom feed', 3),
 
-  // Core AI & LangChain (Main AI Agents + Sub-Nodes for LLM, Memory, MCP/Tools, and Output Parsers)
+  // Core AI & LangChain: 1. Main Agents, Chains & Standalone LLM Nodes
   makeCore('core_ai_agent', 'Core AI & LangChain', 'ai', 'bot', 'AI Agent', '@n8n/n8n-nodes-langchain.agent', 'ai:AgentModule', 'AI Agent by Zapier', 'GHL Conversation AI Agent', 'ai: toolsAgent', 'Autonomous AI Agent connecting Chat Model (LLM), Memory, MCP / Tools, and Output Parser', 14),
   makeCore('core_llm_chain', 'Core AI & LangChain', 'ai', 'sparkles', 'Basic LLM / Q&A Chain', '@n8n/n8n-nodes-langchain.chainLlm', 'ai:PromptChain', 'AI Prompt Chain', 'GHL Prompt Action', 'ai: llmPromptChain', 'Executes a prompt template with connected Chat Model and Output Parser', 9),
   makeCore('core_info_extractor', 'Core AI & LangChain', 'ai', 'sparkles', 'Information Extractor (JSON)', '@n8n/n8n-nodes-langchain.informationExtractor', 'ai:StructuredOutput', 'Extract Structured Data', 'GHL AI Field Extractor', 'ai: strictJsonSchema', 'Extracts structured JSON fields from unstructured text, emails, or PDFs', 10),
   makeCore('core_text_classifier', 'Core AI & LangChain', 'ai', 'cpu', 'Text Classifier & Sentiment', '@n8n/n8n-nodes-langchain.textClassifier', 'ai:Classifier', 'AI Text Classifier', 'GHL AI Intent Classifier', 'ai: multiCategoryClassifier', 'Classifies incoming text into defined categories and analyzes sentiment', 8),
 
-  // AI Agent Sub-Nodes: 1. Chat Models (LLM)
-  makeCore('ai_llm_gemini', 'Core AI & LangChain', 'ai', 'sparkles', 'Gemini 2.5 Chat Model', '@n8n/n8n-nodes-langchain.lmChatGoogleGemini', 'google-ai:GeminiChat', 'Google Gemini LLM', 'GHL Gemini Model', 'llm: gemini-2.5-pro', 'Google Gemini 2.5 Pro / Flash Chat Model connected to AI Agent', 8, {
+  // Standalone LLM Execution Nodes (Execute prompts, summarize, vision, or generate text directly)
+  makeCore('core_openai_chatgpt', 'Core AI & LangChain', 'action', 'openai', 'OpenAI / ChatGPT', 'n8n-nodes-base.openAi', 'openai:CreateChatCompletion', 'ChatGPT by Zapier', 'GHL OpenAI Action', 'action: chat.generateOrComplete', 'Generate text, analyze images with Vision, message assistants, or create embeddings (GPT-4o / o3)', 10),
+  makeCore('core_google_gemini', 'Core AI & LangChain', 'action', 'gemini', 'Google Gemini', 'n8n-nodes-base.googleGemini', 'google-gemini:GenerateContent', 'Google Gemini by Zapier', 'GHL Gemini Action', 'action: gemini.generateContent', 'Multimodal prompts, deep reasoning, and Google Search grounding (Gemini 2.5 Pro & Flash)', 9),
+  makeCore('core_anthropic_claude', 'Core AI & LangChain', 'action', 'claude', 'Anthropic Claude', 'n8n-nodes-base.anthropic', 'anthropic:CreateMessage', 'Anthropic by Zapier', 'GHL Claude Action', 'action: claude.createMessage', 'Claude 3.7 Sonnet & 3.5 Haiku with extended thinking and coding capabilities', 10),
+  makeCore('core_deepseek', 'Core AI & LangChain', 'action', 'deepseek', 'DeepSeek AI', 'n8n-nodes-base.deepSeek', 'deepseek:ChatCompletion', 'DeepSeek by Zapier', 'GHL DeepSeek Action', 'action: deepseek.chatCompletion', 'DeepSeek-R1 reasoning & DeepSeek-V3 fast code generation', 9),
+  makeCore('core_groq', 'Core AI & LangChain', 'action', 'groq', 'Groq (Ultra-Fast LLM)', 'n8n-nodes-base.groq', 'groq:ChatCompletion', 'Groq by Zapier', 'GHL Groq Action', 'action: groq.chatCompletion', 'Ultra-low latency 500+ tokens/sec inference on Llama 3.3 70B & Mixtral 8x7B', 7),
+  makeCore('core_mistral', 'Core AI & LangChain', 'action', 'mistral', 'Mistral AI', 'n8n-nodes-base.mistral', 'mistral:ChatCompletion', 'Mistral by Zapier', 'GHL Mistral Action', 'action: mistral.chatCompletion', 'Mistral Large, Codestral, and Pixtral vision models', 8),
+  makeCore('core_perplexity', 'Core AI & LangChain', 'action', 'perplexity', 'Perplexity AI (Live Web)', 'n8n-nodes-base.perplexity', 'perplexity:ChatCompletion', 'Perplexity by Zapier', 'GHL Perplexity Action', 'action: perplexity.searchAndAnswer', 'Online search-augmented reasoning with live citations and real-time facts', 8),
+  makeCore('core_ollama', 'Core AI & LangChain', 'action', 'ollama', 'Ollama (Local Private LLM)', 'n8n-nodes-base.ollama', 'ollama:LocalChat', 'Ollama by Zapier', 'GHL Ollama Action', 'action: ollama.generateChat', 'Run local self-hosted open models (Llama 3, Qwen 2.5, DeepSeek R1) securely', 8),
+  makeCore('core_cohere', 'Core AI & LangChain', 'action', 'sparkles', 'Cohere AI', 'n8n-nodes-base.cohere', 'cohere:Generate', 'Cohere by Zapier', 'GHL Cohere Action', 'action: cohere.chatOrRerank', 'Command R+, Multilingual Embeddings, and high-precision Reranking', 8),
+
+  // AI Agent Sub-Nodes: 1. Chat Models (LLM sockets connected to AI Agent)
+  makeCore('ai_llm_openai', 'Core AI & LangChain', 'ai', 'openai', 'OpenAI Chat Model (GPT-4o / o3)', '@n8n/n8n-nodes-langchain.lmChatOpenAi', 'openai:ChatModel', 'OpenAI Chat Model', 'GHL OpenAI Model', 'llm: gpt-4o / o3-mini', 'OpenAI GPT-4o, GPT-4.5, and o3-mini Chat Model connected to AI Agent', 9, {
     aiSubNodeType: 'llm',
   }),
-  makeCore('ai_llm_ollama', 'Core AI & LangChain', 'ai', 'cpu', 'Ollama / Local LLM Model', '@n8n/n8n-nodes-langchain.lmChatOllama', 'ollama:LocalChat', 'Local LLM Webhook', 'GHL Custom LLM', 'llm: llama-3.3 / qwen', 'Self-hosted local LLM connected to AI Agent', 8, {
+  makeCore('ai_llm_gemini', 'Core AI & LangChain', 'ai', 'gemini', 'Google Gemini 2.5 Chat Model', '@n8n/n8n-nodes-langchain.lmChatGoogleGemini', 'google-ai:GeminiChat', 'Google Gemini LLM', 'GHL Gemini Model', 'llm: gemini-2.5-pro / flash', 'Google Gemini 2.5 Pro & Flash Chat Model connected to AI Agent', 8, {
+    aiSubNodeType: 'llm',
+  }),
+  makeCore('ai_llm_anthropic', 'Core AI & LangChain', 'ai', 'claude', 'Anthropic Claude 3.7 Chat Model', '@n8n/n8n-nodes-langchain.lmChatAnthropic', 'anthropic:ChatModel', 'Anthropic Claude LLM', 'GHL Claude Model', 'llm: claude-3-7-sonnet', 'Anthropic Claude 3.7 Sonnet & 3.5 Haiku Chat Model connected to AI Agent', 9, {
+    aiSubNodeType: 'llm',
+  }),
+  makeCore('ai_llm_deepseek', 'Core AI & LangChain', 'ai', 'deepseek', 'DeepSeek R1 / V3 Chat Model', '@n8n/n8n-nodes-langchain.lmChatDeepSeek', 'deepseek:ChatModel', 'DeepSeek R1 LLM', 'GHL DeepSeek Model', 'llm: deepseek-r1 / v3', 'DeepSeek R1 reasoning and V3 chat model connected to AI Agent', 8, {
+    aiSubNodeType: 'llm',
+  }),
+  makeCore('ai_llm_groq', 'Core AI & LangChain', 'ai', 'groq', 'Groq Chat Model (Llama 3.3)', '@n8n/n8n-nodes-langchain.lmChatGroq', 'groq:ChatModel', 'Groq Ultra-Fast LLM', 'GHL Groq Model', 'llm: groq-llama-3.3-70b', 'Ultra-fast Groq Llama 3.3 70B & Mixtral Chat Model connected to AI Agent', 7, {
+    aiSubNodeType: 'llm',
+  }),
+  makeCore('ai_llm_mistral', 'Core AI & LangChain', 'ai', 'mistral', 'Mistral Chat Model', '@n8n/n8n-nodes-langchain.lmChatMistral', 'mistral:ChatModel', 'Mistral Large LLM', 'GHL Mistral Model', 'llm: mistral-large-latest', 'Mistral Large & Codestral Chat Model connected to AI Agent', 8, {
+    aiSubNodeType: 'llm',
+  }),
+  makeCore('ai_llm_perplexity', 'Core AI & LangChain', 'ai', 'perplexity', 'Perplexity Chat Model (Live Search)', '@n8n/n8n-nodes-langchain.lmChatPerplexity', 'perplexity:ChatModel', 'Perplexity Live Search LLM', 'GHL Perplexity Model', 'llm: sonar-pro-online', 'Perplexity live web-augmented Chat Model connected to AI Agent', 8, {
+    aiSubNodeType: 'llm',
+  }),
+  makeCore('ai_llm_ollama', 'Core AI & LangChain', 'ai', 'ollama', 'Ollama / Local LLM Model', '@n8n/n8n-nodes-langchain.lmChatOllama', 'ollama:LocalChat', 'Local LLM Webhook', 'GHL Custom LLM', 'llm: llama-3.3 / qwen-2.5', 'Self-hosted local open-source LLM connected to AI Agent', 8, {
+    aiSubNodeType: 'llm',
+  }),
+  makeCore('ai_llm_azure_openai', 'Core AI & LangChain', 'ai', 'openai', 'Azure OpenAI Chat Model', '@n8n/n8n-nodes-langchain.lmChatAzureOpenAi', 'azure:OpenAIChat', 'Azure OpenAI LLM', 'GHL Azure OpenAI', 'llm: azure-gpt-4o', 'Enterprise Azure OpenAI private deployment connected to AI Agent', 8, {
+    aiSubNodeType: 'llm',
+  }),
+  makeCore('ai_llm_aws_bedrock', 'Core AI & LangChain', 'ai', 'cloud', 'AWS Bedrock Chat Model', '@n8n/n8n-nodes-langchain.lmChatAwsBedrock', 'aws:BedrockChat', 'AWS Bedrock LLM', 'GHL Bedrock Model', 'llm: bedrock-claude-3', 'Amazon Web Services Bedrock Claude & Titan connected to AI Agent', 8, {
+    aiSubNodeType: 'llm',
+  }),
+  makeCore('ai_llm_cohere', 'Core AI & LangChain', 'ai', 'sparkles', 'Cohere Command R+ Chat Model', '@n8n/n8n-nodes-langchain.lmChatCohere', 'cohere:ChatModel', 'Cohere Command LLM', 'GHL Cohere Model', 'llm: command-r-plus', 'Cohere Command R+ multilingual Chat Model connected to AI Agent', 8, {
     aiSubNodeType: 'llm',
   }),
 

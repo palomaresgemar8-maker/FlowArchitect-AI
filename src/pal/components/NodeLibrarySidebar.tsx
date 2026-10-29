@@ -1181,28 +1181,35 @@ export const NodeLibrarySidebar: React.FC = () => {
                   ),
                 },
                 {
-                  title: '✦ 2. Chat Models / LLMs (Connects to AI Agent)',
+                  title: '✦ 2. Standalone LLM Nodes (Direct Execution)',
+                  colorClass: 'text-emerald-600 dark:text-emerald-400',
+                  items: N8N_FULL_INTEGRATIONS_CATALOG.filter(
+                    (t) => t.category === 'Core AI & LangChain' && t.role === 'action'
+                  ),
+                },
+                {
+                  title: '✦ 3. Chat Models (Connects to AI Agent)',
                   colorClass: 'text-purple-600 dark:text-purple-400',
                   items: N8N_FULL_INTEGRATIONS_CATALOG.filter(
                     (t) => t.aiSubNodeType === 'llm'
                   ),
                 },
                 {
-                  title: '🧠 3. Memory Sub-Nodes (Connects to AI Agent)',
+                  title: '🧠 4. Memory Sub-Nodes (Connects to AI Agent)',
                   colorClass: 'text-sky-600 dark:text-sky-400',
                   items: N8N_FULL_INTEGRATIONS_CATALOG.filter(
                     (t) => t.aiSubNodeType === 'memory'
                   ),
                 },
                 {
-                  title: '🛠️ 4. MCP & Agent Tools (Connects to AI Agent)',
-                  colorClass: 'text-emerald-600 dark:text-emerald-400',
+                  title: '🛠️ 5. MCP & Agent Tools (Connects to AI Agent)',
+                  colorClass: 'text-teal-600 dark:text-teal-400',
                   items: N8N_FULL_INTEGRATIONS_CATALOG.filter(
                     (t) => t.aiSubNodeType === 'tool'
                   ),
                 },
                 {
-                  title: '📋 5. Output Parsers (Connects to AI Agent)',
+                  title: '📋 6. Output Parsers (Connects to AI Agent)',
                   colorClass: 'text-amber-600 dark:text-amber-400',
                   items: N8N_FULL_INTEGRATIONS_CATALOG.filter(
                     (t) => t.aiSubNodeType === 'parser'

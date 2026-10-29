@@ -165,6 +165,87 @@ const CustomSvgIcons: Record<string, React.FC<{ className?: string }>> = {
       <circle cx="16.5" cy="17" r="1.1" fill="currentColor" />
     </svg>
   ),
+  // OpenAI / ChatGPT Emblem
+  openai: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 2a4 4 0 0 0-3.8 2.7l-.3.9-1.9-.3a4 4 0 0 0-4.3 3.1 4 4 0 0 0 .9 3.5l1.2 1.3-.8 1.7a4 4 0 0 0 .5 4.3 4 4 0 0 0 3.7 1.8l1.9-.3.9 1.7a4 4 0 0 0 3.6 2.3 4 4 0 0 0 3.8-2.7l.3-.9 1.9.3a4 4 0 0 0 4.3-3.1 4 4 0 0 0-.9-3.5l-1.2-1.3.8-1.7a4 4 0 0 0-.5-4.3 4 4 0 0 0-3.7-1.8l-1.9.3-.9-1.7A4 4 0 0 0 12 2z" />
+      <circle cx="12" cy="12" r="2.5" />
+    </svg>
+  ),
+  // Google Gemini Emblem
+  gemini: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 2C12 7.52 7.52 12 2 12C7.52 12 12 16.48 12 22C12 16.48 16.48 12 22 12C16.48 12 12 7.52 12 2Z" />
+      <circle cx="18.5" cy="5.5" r="1.5" fill="currentColor" />
+    </svg>
+  ),
+  // Anthropic Claude Emblem
+  claude: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3v4" />
+      <path d="M12 17v4" />
+      <path d="M3 12h4" />
+      <path d="M17 12h4" />
+      <path d="M5.6 5.6l2.9 2.9" />
+      <path d="M15.5 15.5l2.9 2.9" />
+      <path d="M5.6 18.4l2.9-2.9" />
+      <path d="M15.5 8.5l2.9-2.9" />
+    </svg>
+  ),
+  // DeepSeek AI Emblem
+  deepseek: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 3.5a8.5 8.5 0 0 1 8.5 8.5c0 4.7-3.8 8.5-8.5 8.5" />
+      <circle cx="15" cy="9.5" r="1.5" fill="currentColor" />
+      <path d="M8.5 14.5c1.8 1.5 5.2 1.5 7 0" />
+    </svg>
+  ),
+  // Groq Fast Inference Emblem
+  groq: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+    </svg>
+  ),
+  // Mistral AI Emblem
+  mistral: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="3" y="4" width="4" height="4" rx="1" fill="currentColor" />
+      <rect x="17" y="4" width="4" height="4" rx="1" fill="currentColor" />
+      <rect x="3" y="10" width="4" height="4" rx="1" fill="currentColor" />
+      <rect x="10" y="10" width="4" height="4" rx="1" fill="currentColor" />
+      <rect x="17" y="10" width="4" height="4" rx="1" fill="currentColor" />
+      <rect x="3" y="16" width="4" height="4" rx="1" fill="currentColor" />
+      <rect x="10" y="16" width="4" height="4" rx="1" fill="currentColor" />
+      <rect x="17" y="16" width="4" height="4" rx="1" fill="currentColor" />
+    </svg>
+  ),
+  // Perplexity AI Emblem
+  perplexity: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3v6" />
+      <path d="M12 15v6" />
+      <path d="M3 12h6" />
+      <path d="M15 12h6" />
+      <path d="M5.5 5.5l4.5 4.5" />
+      <path d="M14 14l4.5 4.5" />
+      <path d="M18.5 5.5L14 10" />
+      <path d="M10 14l-4.5 4.5" />
+    </svg>
+  ),
+  // Ollama Local LLM Emblem
+  ollama: ({ className = 'w-4 h-4' }) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.85" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <rect x="4" y="6" width="16" height="12" rx="4" />
+      <circle cx="9" cy="12" r="1.5" fill="currentColor" />
+      <circle cx="15" cy="12" r="1.5" fill="currentColor" />
+      <path d="M12 14v1" />
+      <path d="M8 3v3" />
+      <path d="M16 3v3" />
+    </svg>
+  ),
 };
 
 export const ICON_MAP: Record<string, LucideIcon> = {
@@ -206,6 +287,14 @@ export const ICON_MAP: Record<string, LucideIcon> = {
   play: Play,
   split: Split,
   json: Braces,
+  openai: Zap,
+  gemini: Zap,
+  claude: Zap,
+  deepseek: Zap,
+  groq: Zap,
+  mistral: Zap,
+  perplexity: Search,
+  ollama: Cpu,
 };
 
 export const APP_ACCENT_BADGES: Record<
@@ -316,6 +405,62 @@ export const APP_ACCENT_BADGES: Record<
     textDark: 'text-blue-400',
     textLight: 'text-blue-600',
     ring: 'border-blue-500/30',
+  },
+  openai: {
+    bgDark: 'bg-emerald-500/20',
+    bgLight: 'bg-emerald-50',
+    textDark: 'text-emerald-300',
+    textLight: 'text-emerald-700',
+    ring: 'border-emerald-500/40',
+  },
+  gemini: {
+    bgDark: 'bg-blue-500/20',
+    bgLight: 'bg-blue-50',
+    textDark: 'text-blue-400',
+    textLight: 'text-blue-600',
+    ring: 'border-blue-500/40',
+  },
+  claude: {
+    bgDark: 'bg-amber-500/20',
+    bgLight: 'bg-amber-50',
+    textDark: 'text-amber-400',
+    textLight: 'text-amber-700',
+    ring: 'border-amber-500/40',
+  },
+  deepseek: {
+    bgDark: 'bg-sky-500/20',
+    bgLight: 'bg-sky-50',
+    textDark: 'text-sky-400',
+    textLight: 'text-sky-600',
+    ring: 'border-sky-500/40',
+  },
+  groq: {
+    bgDark: 'bg-orange-500/20',
+    bgLight: 'bg-orange-50',
+    textDark: 'text-orange-400',
+    textLight: 'text-orange-600',
+    ring: 'border-orange-500/40',
+  },
+  mistral: {
+    bgDark: 'bg-amber-600/20',
+    bgLight: 'bg-amber-50',
+    textDark: 'text-amber-400',
+    textLight: 'text-amber-700',
+    ring: 'border-amber-500/40',
+  },
+  perplexity: {
+    bgDark: 'bg-teal-500/20',
+    bgLight: 'bg-teal-50',
+    textDark: 'text-teal-400',
+    textLight: 'text-teal-600',
+    ring: 'border-teal-500/40',
+  },
+  ollama: {
+    bgDark: 'bg-slate-700/30',
+    bgLight: 'bg-slate-100',
+    textDark: 'text-slate-200',
+    textLight: 'text-slate-700',
+    ring: 'border-slate-500/40',
   },
 };
 
