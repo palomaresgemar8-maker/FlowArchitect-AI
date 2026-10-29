@@ -144,7 +144,7 @@ export const STARTER_PROJECTS: WorkflowProject[] = [
       {
         id: 'sub_fin_llm',
         type: 'workflowNode',
-        position: { x: 1110, y: 315 },
+        position: { x: 1140, y: 305 },
         zIndex: 10,
         style: { width: 68, height: 68 },
         data: {
@@ -164,7 +164,7 @@ export const STARTER_PROJECTS: WorkflowProject[] = [
       {
         id: 'sub_fin_memory',
         type: 'workflowNode',
-        position: { x: 1200, y: 315 },
+        position: { x: 1224, y: 305 },
         zIndex: 10,
         style: { width: 68, height: 68 },
         data: {
@@ -184,7 +184,7 @@ export const STARTER_PROJECTS: WorkflowProject[] = [
       {
         id: 'sub_fin_mcp',
         type: 'workflowNode',
-        position: { x: 1290, y: 315 },
+        position: { x: 1308, y: 305 },
         zIndex: 10,
         style: { width: 68, height: 68 },
         data: {
@@ -204,7 +204,7 @@ export const STARTER_PROJECTS: WorkflowProject[] = [
       {
         id: 'sub_fin_parser',
         type: 'workflowNode',
-        position: { x: 1380, y: 315 },
+        position: { x: 1392, y: 305 },
         zIndex: 10,
         style: { width: 68, height: 68 },
         data: {
@@ -285,6 +285,7 @@ export const STARTER_PROJECTS: WorkflowProject[] = [
         targetHandle: 'sub-top',
         type: 'workflowEdge',
         animated: true,
+        data: { isAiSubNode: true, slot: 'llm' },
       },
       {
         id: 'e_fin_sub_mem',
@@ -294,6 +295,7 @@ export const STARTER_PROJECTS: WorkflowProject[] = [
         targetHandle: 'sub-top',
         type: 'workflowEdge',
         animated: true,
+        data: { isAiSubNode: true, slot: 'memory' },
       },
       {
         id: 'e_fin_sub_mcp',
@@ -303,6 +305,7 @@ export const STARTER_PROJECTS: WorkflowProject[] = [
         targetHandle: 'sub-top',
         type: 'workflowEdge',
         animated: true,
+        data: { isAiSubNode: true, slot: 'tool' },
       },
       {
         id: 'e_fin_sub_parser',
@@ -312,6 +315,7 @@ export const STARTER_PROJECTS: WorkflowProject[] = [
         targetHandle: 'sub-top',
         type: 'workflowEdge',
         animated: true,
+        data: { isAiSubNode: true, slot: 'parser' },
       },
     ],
   },

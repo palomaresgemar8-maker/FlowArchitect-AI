@@ -965,39 +965,41 @@ export const ResizableWorkflowNode = memo(function ResizableWorkflowNode({
                   )}
                 </span>
 
-                {/* Show stem + '+' button when not connected or when hovering the AI Agent */}
-                <div
-                  className={`flex flex-col items-center transition-opacity ${
-                    !isConnected || selected || activeSlotPicker === slotCfg.slot
-                      ? 'opacity-100'
-                      : 'opacity-0 group-hover:opacity-100'
-                  }`}
-                >
+                {/* Show stem + '+' button only when NOT connected to avoid wire collision */}
+                {!isConnected && (
                   <div
-                    className={`w-px h-3 mt-0.5 ${
-                      isLightMode ? 'bg-slate-300' : 'bg-slate-700'
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    title={`Add & connect ${slotCfg.label} to AI Agent`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveSlotPicker((prev) =>
-                        prev === slotCfg.slot ? null : slotCfg.slot
-                      );
-                    }}
-                    className={`w-5 h-5 rounded-md border flex items-center justify-center text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
-                      activeSlotPicker === slotCfg.slot
-                        ? 'bg-violet-600 border-violet-500 text-white scale-110'
-                        : isLightMode
-                        ? 'bg-slate-100 border-slate-300 text-slate-600 hover:bg-violet-50 hover:border-violet-400 hover:text-violet-600'
-                        : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-violet-950 hover:border-violet-500 hover:text-violet-300'
+                    className={`flex flex-col items-center transition-opacity ${
+                      selected || activeSlotPicker === slotCfg.slot
+                        ? 'opacity-100'
+                        : 'opacity-70 group-hover:opacity-100'
                     }`}
                   >
-                    <Plus className="w-3 h-3" />
-                  </button>
-                </div>
+                    <div
+                      className={`w-px h-3 mt-0.5 ${
+                        isLightMode ? 'bg-slate-300' : 'bg-slate-700'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      title={`Add & connect ${slotCfg.label} to AI Agent`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveSlotPicker((prev) =>
+                          prev === slotCfg.slot ? null : slotCfg.slot
+                        );
+                      }}
+                      className={`w-5 h-5 rounded-md border flex items-center justify-center text-[11px] font-bold transition-all cursor-pointer shadow-2xs ${
+                        activeSlotPicker === slotCfg.slot
+                          ? 'bg-violet-600 border-violet-500 text-white scale-110'
+                          : isLightMode
+                          ? 'bg-slate-100 border-slate-300 text-slate-600 hover:bg-violet-50 hover:border-violet-400 hover:text-violet-600'
+                          : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-violet-950 hover:border-violet-500 hover:text-violet-300'
+                      }`}
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                )}
               </div>
             </React.Fragment>
           );

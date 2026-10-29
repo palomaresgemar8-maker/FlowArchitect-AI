@@ -220,6 +220,29 @@ function applyMindMapVisibility(
   };
 }
 
+function sanitizeProjectEdges(edges: FlowEdge[]): FlowEdge[] {
+  return edges.map((e) => {
+    const isAiSub = Boolean(
+      e.sourceHandle?.startsWith('ai-') ||
+      e.targetHandle === 'sub-top' ||
+      (e.data as any)?.isAiSubNode ||
+      (e.data as any)?.slot
+    );
+    if (isAiSub) {
+      const dataClean = { ...(e.data || {}) };
+      delete (dataClean as any).isLoopReturn;
+      delete (dataClean as any).loopOffset;
+      dataClean.isAiSubNode = true;
+      return {
+        ...e,
+        label: undefined,
+        data: dataClean,
+      };
+    }
+    return e;
+  });
+}
+
 const initialProject = STARTER_PROJECTS[0];
 
 export const useWorkflowStore = create<WorkflowState>((set, get) => ({
@@ -231,7 +254,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   canvasMode: 'workflow',
   savedWorkflowPositions: {},
   nodes: normalizeNodeLayerOrder(initialProject.nodes),
-  edges: initialProject.edges,
+  edges: sanitizeProjectEdges(initialProject.edges),
   selectedNodeId: null,
   swapTargetNodeId: null,
   isLightMode: true,
@@ -246,9 +269,13 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
   initWorkspace: async () => {
     const loaded = await initializeAndLoadProjects();
     if (loaded.length > 0) {
-      const first = loaded[0];
+      const sanitizedLoaded = loaded.map((p) => ({
+        ...p,
+        edges: sanitizeProjectEdges(p.edges),
+      }));
+      const first = sanitizedLoaded[0];
       set({
-        projects: loaded,
+        projects: sanitizedLoaded,
         activeProjectId: first.id,
         projectName: first.name,
         projectDescription: first.description,
@@ -256,7 +283,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         canvasMode: 'workflow',
         savedWorkflowPositions: {},
         nodes: normalizeNodeLayerOrder(first.nodes),
-        edges: first.edges,
+        edges: sanitizeProjectEdges(first.edges),
         past: [],
         future: [],
       });
@@ -463,6 +490,14 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
 
     const sourceNode = nodes.find((n) => n.id === finalSource);
     const targetNode = nodes.find((n) => n.id === finalTarget);
+
+    const isAiSubConnection = Boolean(
+      finalSourceHandle?.startsWith('ai-') ||
+      finalTargetHandle === 'sub-top' ||
+      sourceNode?.data.aiSubNodeType ||
+      targetNode?.data.aiSubNodeType
+    );
+
     const isTargetLoopNode = Boolean(
       targetNode &&
         (targetNode.data.isLoopNode ||
@@ -471,10 +506,9 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
           targetNode.data.operation?.startsWith('loop:'))
     );
 
-    // 2. Just like n8n: if wiring ANY downstream node (to the right of the Loop node)
-    // back to ANY port on a Loop node (left input port or bottom loop-return port),
-    // automatically treat it as the '↻ next batch' loop-return feedback wire!
+    // If wiring ANY downstream node back to a Loop node, treat it as loop-return feedback wire
     const isBackwardToLoop =
+      !isAiSubConnection &&
       isTargetLoopNode &&
       (finalTargetHandle === 'loop-return' ||
         Boolean(
@@ -487,20 +521,14 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       finalTargetHandle = 'loop-return';
     }
 
-    const isBackwardAny = Boolean(
-      sourceNode &&
-        targetNode &&
-        sourceNode.position.x > targetNode.position.x + 24
-    );
-
-    const edgeLabel = isBackwardToLoop
+    const edgeLabel = isAiSubConnection
+      ? undefined
+      : isBackwardToLoop
       ? '↻ next batch'
       : finalSourceHandle === 'loop-body'
       ? 'loop'
       : finalSourceHandle === 'loop-done'
       ? 'done'
-      : isBackwardAny
-      ? '↻ loop back'
       : undefined;
 
     get().takeSnapshot();
@@ -525,10 +553,14 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         type: 'workflowEdge',
         animated: true,
         label: edgeLabel,
-        data:
-          isBackwardToLoop || isBackwardAny
-            ? { isLoopReturn: true, loopOffset: 96 }
-            : undefined,
+        data: isAiSubConnection
+          ? {
+              isAiSubNode: true,
+              slot: targetNode?.data.aiSubNodeType || finalSourceHandle?.replace('ai-', ''),
+            }
+          : isBackwardToLoop
+          ? { isLoopReturn: true, loopOffset: 96 }
+          : undefined,
       },
       cleanedEdges
     );
@@ -536,10 +568,11 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     get().persistCurrentProject();
     eventBus.emit('TOAST_NOTIFY', {
       type: 'success',
-      message:
-        isBackwardToLoop || isBackwardAny
-          ? 'Wired ↻ loop-back connection (drag pill up/down to adjust curve)'
-          : 'Connected workflow nodes',
+      message: isAiSubConnection
+        ? `Connected ${targetNode?.data.label || 'sub-node'} to AI Agent`
+        : isBackwardToLoop
+        ? 'Wired ↻ loop-back connection (drag pill up/down to adjust curve)'
+        : 'Connected workflow nodes',
     });
   },
 
@@ -1398,16 +1431,16 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     ).length;
 
     const slotOffsetMap: Record<AiSubNodeType, number> = {
-      llm: -75,
-      memory: 5,
-      tool: 85,
-      parser: 165,
+      llm: -40,
+      memory: 44,
+      tool: 128,
+      parser: 212,
     };
 
     const baseOffset = slotOffsetMap[slot] ?? 0;
     const xPos =
-      agentNode.position.x + baseOffset + existingOnSlot * 82;
-    const yPos = agentNode.position.y + 165;
+      agentNode.position.x + baseOffset + existingOnSlot * 84;
+    const yPos = agentNode.position.y + 160;
 
     const newId = `sub_${slot}_${Date.now().toString(36).slice(-4)}`;
     const newSubNode: FlowNode = {
@@ -1443,6 +1476,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       targetHandle: 'sub-top',
       type: 'workflowEdge',
       animated: true,
+      data: { isAiSubNode: true, slot },
     };
 
     const nextNodes = [...get().nodes, newSubNode];
@@ -1695,7 +1729,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       nodes: isMindMap
         ? computeMindMapLayout(target.nodes, target.edges)
         : target.nodes,
-      edges: target.edges,
+      edges: sanitizeProjectEdges(target.edges),
       selectedNodeId: null,
       past: [],
       future: [],
@@ -1771,7 +1805,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       projectDescription: newProj.description,
       platform: newProj.platform,
       nodes: newProj.nodes,
-      edges: newProj.edges,
+      edges: sanitizeProjectEdges(newProj.edges),
       selectedNodeId: null,
       past: [],
       future: [],
@@ -1798,7 +1832,7 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
         projectDescription: next.description,
         platform: next.platform,
         nodes: next.nodes,
-        edges: next.edges,
+        edges: sanitizeProjectEdges(next.edges),
         selectedNodeId: null,
       });
     } else {
@@ -1814,8 +1848,10 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
     const stickyCount = project.nodes.filter((n) => n.type === 'resizableGroup').length;
     const stepCount = project.nodes.filter((n) => n.type !== 'resizableGroup').length;
 
+    const sanitizedEdges = sanitizeProjectEdges(project.edges);
+
     set((state) => ({
-      projects: [project, ...state.projects],
+      projects: [{ ...project, edges: sanitizedEdges }, ...state.projects],
       activeProjectId: project.id,
       projectName: project.name,
       projectDescription: project.description,
@@ -1823,12 +1859,12 @@ export const useWorkflowStore = create<WorkflowState>((set, get) => ({
       canvasMode: 'workflow',
       savedWorkflowPositions: posMap,
       nodes: project.nodes,
-      edges: project.edges,
+      edges: sanitizedEdges,
       selectedNodeId: null,
       past: [],
       future: [],
     }));
-    saveProjectToDb(project);
+    saveProjectToDb({ ...project, edges: sanitizedEdges });
     eventBus.emit('TOAST_NOTIFY', {
       type: 'success',
       message: `Imported "${project.name}" (${stepCount} steps${

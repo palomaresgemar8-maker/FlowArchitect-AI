@@ -34,18 +34,32 @@ export const DeletableWorkflowEdge: React.FC<EdgeProps> = ({
   const canvasMode = useWorkflowStore((s) => s.canvasMode);
   const { getZoom } = useReactFlow();
 
+  // Detect whether this edge connects an AI Agent to a sub-node (Model, Memory, Tool, Parser)
+  const isAiSubNodeEdge = Boolean(
+    sourceHandleId?.startsWith('ai-') ||
+    targetHandleId === 'sub-top' ||
+    (data as any)?.isAiSubNode ||
+    (data as any)?.slot
+  );
+
   const labelStr = String(label || '').toLowerCase();
   const isExplicitLoopReturn =
-    targetHandleId === 'loop-return' ||
-    labelStr.includes('next batch') ||
-    labelStr.includes('loop back') ||
-    Boolean((data as any)?.isLoopReturn);
+    !isAiSubNodeEdge &&
+    (targetHandleId === 'loop-return' ||
+      Boolean((data as any)?.isLoopReturn) ||
+      (labelStr.includes('next batch') && !labelStr.includes('sub')));
 
-  // Any connection going backward (right-to-left) or explicitly targeting loop-return
-  // uses the clean n8n-style underneath loop-back path so it never cuts across nodes!
+  // Standard horizontal backward step wire (right-to-left) returning to an upstream step
+  const isHorizontalBackwardFlow =
+    !isAiSubNodeEdge &&
+    sourcePosition === Position.Right &&
+    targetPosition === Position.Left &&
+    targetX < sourceX - 40;
+
   const isLoopReturnEdge =
     canvasMode !== 'mindmap' &&
-    (isExplicitLoopReturn || targetX < sourceX - 24);
+    !isAiSubNodeEdge &&
+    (isExplicitLoopReturn || isHorizontalBackwardFlow);
 
   const customLoopOffset =
     typeof (data as any)?.loopOffset === 'number'
@@ -56,7 +70,21 @@ export const DeletableWorkflowEdge: React.FC<EdgeProps> = ({
   let labelX: number;
   let labelY: number;
 
-  if (isLoopReturnEdge) {
+  if (isAiSubNodeEdge) {
+    // Elegant, smooth vertical Bezier flowing from agent's bottom port to sub-node's top port
+    const [bzPath, bzX, bzY] = getBezierPath({
+      sourceX,
+      sourceY,
+      sourcePosition: Position.Bottom,
+      targetX,
+      targetY,
+      targetPosition: Position.Top,
+      curvature: 0.35,
+    });
+    edgePath = bzPath;
+    labelX = bzX;
+    labelY = bzY;
+  } else if (isLoopReturnEdge) {
     const effectiveTargetPosition =
       targetHandleId === 'loop-return' ? Position.Bottom : targetPosition;
     const { path, labelX: lx, labelY: ly } = buildN8nLoopBackPath({
@@ -112,12 +140,15 @@ export const DeletableWorkflowEdge: React.FC<EdgeProps> = ({
   );
 
   const getEdgeStroke = () => {
+    if (isAiSubNodeEdge) {
+      if (sourceHandleId === 'ai-llm' || (data as any)?.slot === 'llm') return '#A855F7';
+      if (sourceHandleId === 'ai-memory' || (data as any)?.slot === 'memory') return '#0EA5E9';
+      if (sourceHandleId === 'ai-tool' || (data as any)?.slot === 'tool') return '#10B981';
+      if (sourceHandleId === 'ai-parser' || (data as any)?.slot === 'parser') return '#F59E0B';
+      return '#A855F7';
+    }
     if (canvasMode === 'mindmap') {
       if (selected) return '#6366F1';
-      if (sourceHandleId === 'ai-llm') return '#A855F7';
-      if (sourceHandleId === 'ai-memory') return '#0EA5E9';
-      if (sourceHandleId === 'ai-tool') return '#10B981';
-      if (sourceHandleId === 'ai-parser') return '#F59E0B';
       if (sourceHandleId === 'loop-done') return '#10B981';
       if (sourceHandleId === 'loop-body') return '#F59E0B';
       return isLightMode ? '#6366F1' : '#818CF8';
@@ -128,33 +159,38 @@ export const DeletableWorkflowEdge: React.FC<EdgeProps> = ({
     return isLightMode ? '#64748B' : '#94A3B8';
   };
 
-  const displayLabel =
-    label || (isLoopReturnEdge ? '↻ next batch' : undefined);
+  const displayLabel = isAiSubNodeEdge
+    ? undefined
+    : label || (isLoopReturnEdge ? '↻ next batch' : undefined);
 
   return (
     <>
       <BaseEdge
         path={edgePath}
-        interactionWidth={28}
-        markerEnd={canvasMode === 'mindmap' ? undefined : markerEnd}
+        interactionWidth={24}
+        markerEnd={canvasMode === 'mindmap' || isAiSubNodeEdge ? undefined : markerEnd}
         style={{
           ...style,
-          strokeDasharray:
-            canvasMode === 'mindmap'
-              ? 'none'
-              : isLoopReturnEdge
-              ? '6 4'
-              : style.strokeDasharray,
-          strokeWidth:
-            canvasMode === 'mindmap'
-              ? selected
-                ? 3.5
-                : 2.5
-              : selected
-              ? 3
-              : isLoopReturnEdge
-              ? 2.4
-              : 2,
+          strokeDasharray: isAiSubNodeEdge
+            ? '4 4'
+            : canvasMode === 'mindmap'
+            ? 'none'
+            : isLoopReturnEdge
+            ? '6 4'
+            : style.strokeDasharray,
+          strokeWidth: isAiSubNodeEdge
+            ? selected
+              ? 2.8
+              : 2
+            : canvasMode === 'mindmap'
+            ? selected
+              ? 3.5
+              : 2.5
+            : selected
+            ? 3
+            : isLoopReturnEdge
+            ? 2.4
+            : 2,
           stroke: getEdgeStroke(),
         }}
       />
@@ -200,9 +236,10 @@ export const DeletableWorkflowEdge: React.FC<EdgeProps> = ({
             </span>
           )}
 
+          {/* Delete Wire (X) button */}
           <button
             type="button"
-            title="Delete this connection wire"
+            title={isAiSubNodeEdge ? 'Disconnect sub-node' : 'Delete this connection wire'}
             onClick={(e) => {
               e.stopPropagation();
               deleteEdge(id);
@@ -210,7 +247,7 @@ export const DeletableWorkflowEdge: React.FC<EdgeProps> = ({
             className={`no-export w-5 h-5 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
               selected
                 ? 'opacity-100 scale-105 bg-rose-600 border-rose-400 text-white shadow-md'
-                : canvasMode === 'mindmap'
+                : isAiSubNodeEdge || canvasMode === 'mindmap'
                 ? 'opacity-0 group-hover:opacity-100 hover:scale-110 bg-slate-900/95 border-slate-600 text-slate-300 hover:bg-rose-600 hover:border-rose-400 hover:text-white'
                 : 'opacity-85 hover:opacity-100 hover:scale-110 bg-slate-900/95 border-slate-600 text-slate-300 hover:bg-rose-600 hover:border-rose-400 hover:text-white'
             }`}
@@ -218,23 +255,26 @@ export const DeletableWorkflowEdge: React.FC<EdgeProps> = ({
             <X className="w-3 h-3" />
           </button>
 
-          <button
-            type="button"
-            title="Insert a step on this wire (+)"
-            onClick={(e) => {
-              e.stopPropagation();
-              insertNodeOnEdge(id);
-            }}
-            className={`no-export w-5 h-5 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
-              selected
-                ? 'opacity-100 scale-105 bg-indigo-600 border-indigo-400 text-white shadow-md'
-                : canvasMode === 'mindmap'
-                ? 'opacity-0 group-hover:opacity-100 hover:scale-110 bg-slate-900/95 border-slate-600 text-slate-300 hover:bg-indigo-600 hover:border-indigo-400 hover:text-white'
-                : 'opacity-85 hover:opacity-100 hover:scale-110 bg-slate-900/95 border-slate-600 text-slate-300 hover:bg-indigo-600 hover:border-indigo-400 hover:text-white'
-            }`}
-          >
-            <Plus className="w-3 h-3" />
-          </button>
+          {/* Insert Step (+) button: ONLY on standard workflow pipeline wires, NOT on AI Sub-Node sockets! */}
+          {!isAiSubNodeEdge && (
+            <button
+              type="button"
+              title="Insert a step on this wire (+)"
+              onClick={(e) => {
+                e.stopPropagation();
+                insertNodeOnEdge(id);
+              }}
+              className={`no-export w-5 h-5 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                selected
+                  ? 'opacity-100 scale-105 bg-indigo-600 border-indigo-400 text-white shadow-md'
+                  : canvasMode === 'mindmap'
+                  ? 'opacity-0 group-hover:opacity-100 hover:scale-110 bg-slate-900/95 border-slate-600 text-slate-300 hover:bg-indigo-600 hover:border-indigo-400 hover:text-white'
+                  : 'opacity-85 hover:opacity-100 hover:scale-110 bg-slate-900/95 border-slate-600 text-slate-300 hover:bg-indigo-600 hover:border-indigo-400 hover:text-white'
+              }`}
+            >
+              <Plus className="w-3 h-3" />
+            </button>
+          )}
         </div>
       </EdgeLabelRenderer>
     </>

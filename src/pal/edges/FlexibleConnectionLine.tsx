@@ -99,16 +99,32 @@ export const FlexibleConnectionLine: React.FC<ConnectionLineComponentProps> = ({
   const canvasMode = useWorkflowStore((s) => s.canvasMode);
 
   const handleId = fromHandle?.id || '';
+  const isAiHandle = handleId.startsWith('ai-') || handleId === 'sub-top';
   const isReverseFromLoopReturn = handleId === 'loop-return';
   const isBackwardDrag =
     canvasMode !== 'mindmap' &&
-    (isReverseFromLoopReturn || toX < fromX - 24);
+    !isAiHandle &&
+    fromPosition !== Position.Bottom &&
+    (isReverseFromLoopReturn || (fromPosition === Position.Right && toX < fromX - 36));
 
   let dPath = '';
   let badgeX = (fromX + toX) / 2;
   let badgeY = (fromY + toY) / 2;
 
-  if (isBackwardDrag) {
+  if (isAiHandle || fromPosition === Position.Bottom) {
+    const [bzPath, lx, ly] = getBezierPath({
+      sourceX: fromX,
+      sourceY: fromY,
+      sourcePosition: Position.Bottom,
+      targetX: toX,
+      targetY: toY,
+      targetPosition: toPosition || Position.Top,
+      curvature: 0.35,
+    });
+    dPath = bzPath;
+    badgeX = lx;
+    badgeY = ly;
+  } else if (isBackwardDrag) {
     // If dragging from loop-return forward to a node, or from a downstream node backward to loop node
     const sx = isReverseFromLoopReturn ? toX : fromX;
     const sy = isReverseFromLoopReturn ? toY : fromY;
@@ -141,7 +157,17 @@ export const FlexibleConnectionLine: React.FC<ConnectionLineComponentProps> = ({
     badgeY = ly;
   }
 
-  const strokeColor = isBackwardDrag
+  const strokeColor = isAiHandle
+    ? handleId === 'ai-llm'
+      ? '#A855F7'
+      : handleId === 'ai-memory'
+      ? '#0EA5E9'
+      : handleId === 'ai-tool'
+      ? '#10B981'
+      : handleId === 'ai-parser'
+      ? '#F59E0B'
+      : '#A855F7'
+    : isBackwardDrag
     ? '#F59E0B'
     : handleId === 'loop-done'
     ? '#10B981'
