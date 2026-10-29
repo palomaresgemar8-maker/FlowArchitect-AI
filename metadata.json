@@ -1,0 +1,10 @@
+{
+  "name": "FlowArchitect AI",
+  "description": "A local-first AI workflow diagramming studio that turns text prompts into resizable, drag-and-swap visual blueprints for n8n, Make, Zapier, and GoHighLevel.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
