@@ -68,6 +68,7 @@ export const TopBar: React.FC<TopBarProps> = ({ canvasViewportRef }) => {
     setIsLightMode,
     setIsSettingsModalOpen,
     setIsSowModalOpen,
+    aiSettings,
   } = useWorkflowStore();
 
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
@@ -741,14 +742,17 @@ export const TopBar: React.FC<TopBarProps> = ({ canvasViewportRef }) => {
           <button
             type="button"
             onClick={() => setIsSettingsModalOpen(true)}
-            title="Configure AI Engine & Custom Base Endpoint URL"
-            className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+            title={`Configure AI Engine (Active: ${aiSettings.provider} · ${aiSettings.modelId})`}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-colors cursor-pointer ${
               isLightMode
-                ? 'border-slate-200 hover:bg-slate-100 text-slate-700'
-                : 'border-slate-800 hover:bg-slate-800 text-slate-300'
+                ? 'border-violet-200 bg-violet-50/70 text-violet-800 hover:bg-violet-100'
+                : 'border-violet-500/30 bg-violet-500/10 text-violet-300 hover:bg-violet-500/20'
             }`}
           >
-            <Settings className="w-3.5 h-3.5" />
+            <Settings className="w-3.5 h-3.5 text-violet-500 shrink-0" />
+            <span className="hidden xl:inline text-[11px] font-mono font-medium max-w-[140px] truncate">
+              {aiSettings.modelId}
+            </span>
           </button>
         </div>
       </div>

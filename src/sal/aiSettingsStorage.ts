@@ -7,7 +7,7 @@ export const DEFAULT_AI_SETTINGS: AiEngineSettings = {
   customBaseUrl: 'https://api.unorouter.com/v1/chat/completions',
   anthropicBaseUrl: 'https://api.unorouter.com/anthropic',
   apiFormat: 'openai',
-  modelId: 'deepseek-flash',
+  modelId: 'claude-sonnet-5-thinking',
   temperature: 0.35,
   envVarName: 'UNOROUTER_API_KEY',
   customParams: [
@@ -33,13 +33,18 @@ export function loadAiSettings(): AiEngineSettings {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return DEFAULT_AI_SETTINGS;
     const parsed = JSON.parse(raw);
-    return {
+    const settings: AiEngineSettings = {
       ...DEFAULT_AI_SETTINGS,
       ...parsed,
       customParams: Array.isArray(parsed.customParams)
         ? parsed.customParams
         : DEFAULT_AI_SETTINGS.customParams,
     };
+    if (settings.provider === 'uno-router' && (settings.modelId === 'deepseek-flash' || !settings.modelId)) {
+      settings.modelId = 'claude-sonnet-5-thinking';
+      settings.customBaseUrl = 'https://api.unorouter.com/v1/chat/completions';
+    }
+    return settings;
   } catch {
     return DEFAULT_AI_SETTINGS;
   }

@@ -24,6 +24,8 @@ export interface LlmEndpointTestResult {
   modelId: string;
   appliedParams: Record<string, unknown>;
   message: string;
+  consentUrl?: string;
+  requiresConsent?: boolean;
 }
 
 export async function testCustomLlmEndpoint(

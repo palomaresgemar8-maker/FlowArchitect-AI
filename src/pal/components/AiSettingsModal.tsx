@@ -20,7 +20,7 @@ const BASE_URL_PRESETS = [
     label: 'Uno Router',
     openaiUrl: 'https://api.unorouter.com/v1/chat/completions',
     anthropicUrl: 'https://api.unorouter.com/anthropic',
-    model: 'deepseek-flash',
+    model: 'claude-sonnet-5-thinking',
     envVar: 'UNOROUTER_API_KEY',
   },
   {
@@ -61,10 +61,12 @@ const BASE_URL_PRESETS = [
 ] as const;
 
 const MODEL_CHIPS = [
-  { id: 'deepseek-flash', badge: '(1)' },
+  { id: 'claude-sonnet-5-thinking', badge: '(UnoRouter)' },
+  { id: 'claude-sonnet-5', badge: '' },
+  { id: 'deepseek-v4-flash', badge: '' },
   { id: 'deepseek-v4-pro', badge: '' },
   { id: 'deepseek-chat', badge: '' },
-  { id: 'deepseek-reasoner', badge: '' },
+  { id: 'deepseek-flash', badge: '' },
   { id: 'gpt-4o', badge: '' },
   { id: 'claude-3-7-sonnet', badge: '' },
   { id: 'gemini-3.8-flash', badge: '' },
@@ -72,11 +74,6 @@ const MODEL_CHIPS = [
 
 const SERVER_ENV_VARS = [
   'UNOROUTER_API_KEY',
-  'DEEPSEEK_API_KEY',
-  'CUSTOM_LLM_API_KEY',
-  'OPENAI_API_KEY',
-  'OPENROUTER_API_KEY',
-  'GROQ_API_KEY',
   'GEMINI_API_KEY',
 ] as const;
 
@@ -93,6 +90,8 @@ export const AiSettingsModal: React.FC = () => {
   const [testResult, setTestResult] = useState<{
     ok: boolean;
     message: string;
+    consentUrl?: string;
+    requiresConsent?: boolean;
   } | null>(null);
 
   if (!isSettingsModalOpen) return null;
@@ -114,7 +113,7 @@ export const AiSettingsModal: React.FC = () => {
         customBaseUrl: 'https://api.unorouter.com/v1/chat/completions',
         anthropicBaseUrl: 'https://api.unorouter.com/anthropic',
         apiFormat: 'openai',
-        modelId: 'deepseek-flash',
+        modelId: 'claude-sonnet-5-thinking',
         envVarName: 'UNOROUTER_API_KEY',
       });
     } else if (provider === 'deepseek') {
@@ -177,6 +176,8 @@ export const AiSettingsModal: React.FC = () => {
       setTestResult({
         ok: res.ok,
         message: res.message,
+        consentUrl: res.consentUrl,
+        requiresConsent: res.requiresConsent,
       });
     } catch (err: any) {
       setTestResult({
@@ -772,18 +773,36 @@ export const AiSettingsModal: React.FC = () => {
           {/* Endpoint Verification Result Banner */}
           {testResult && (
             <div
-              className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs ${
+              className={`flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3.5 py-2.5 rounded-xl border text-xs ${
                 testResult.ok
-                  ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                  : 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300'
+                  ? testResult.requiresConsent
+                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-200'
+                    : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200'
+                  : 'border-rose-500/40 bg-rose-500/10 text-rose-800 dark:text-rose-200'
               }`}
             >
-              {testResult.ok ? (
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-              ) : (
-                <AlertCircle className="w-4 h-4 shrink-0" />
+              <div className="flex items-start sm:items-center gap-2">
+                {testResult.ok ? (
+                  testResult.requiresConsent ? (
+                    <AlertCircle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5 sm:mt-0" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5 sm:mt-0" />
+                  )
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5 sm:mt-0" />
+                )}
+                <span className="font-mono text-[11px] leading-relaxed">{testResult.message}</span>
+              </div>
+              {testResult.consentUrl && (
+                <a
+                  href={testResult.consentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-semibold text-[11px] transition-colors shrink-0 whitespace-nowrap self-start sm:self-auto cursor-pointer"
+                >
+                  <span>1-Click Consent on UnoRouter ↗</span>
+                </a>
               )}
-              <span className="font-mono text-[11px]">{testResult.message}</span>
             </div>
           )}
         </div>

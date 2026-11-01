@@ -176,11 +176,6 @@ Rules:
 function resolveServerApiKey(provider: string, envVarName?: string): string | undefined {
   const allowedEnvKeys: Record<string, string | undefined> = {
     UNOROUTER_API_KEY: process.env.UNOROUTER_API_KEY,
-    DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY,
-    CUSTOM_LLM_API_KEY: process.env.CUSTOM_LLM_API_KEY,
-    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-    OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
-    GROQ_API_KEY: process.env.GROQ_API_KEY,
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
   };
 
@@ -188,24 +183,7 @@ function resolveServerApiKey(provider: string, envVarName?: string): string | un
     return allowedEnvKeys[envVarName];
   }
 
-  if (provider === 'uno-router' || provider === 'deepseek') {
-    return (
-      process.env.UNOROUTER_API_KEY ||
-      process.env.DEEPSEEK_API_KEY ||
-      process.env.CUSTOM_LLM_API_KEY ||
-      process.env.OPENROUTER_API_KEY ||
-      process.env.OPENAI_API_KEY
-    );
-  }
-
-  return (
-    process.env.UNOROUTER_API_KEY ||
-    process.env.CUSTOM_LLM_API_KEY ||
-    process.env.OPENAI_API_KEY ||
-    process.env.OPENROUTER_API_KEY ||
-    process.env.DEEPSEEK_API_KEY ||
-    process.env.GROQ_API_KEY
-  );
+  return process.env.UNOROUTER_API_KEY || process.env.GEMINI_API_KEY;
 }
 
 function buildCustomParamsObject(
@@ -272,12 +250,14 @@ app.post('/api/ai/test-endpoint', async (req, res) => {
       customBaseUrl = 'https://api.unorouter.com/v1/chat/completions',
       anthropicBaseUrl = 'https://api.unorouter.com/anthropic',
       apiFormat = 'openai',
-      modelId = 'deepseek-flash',
+      modelId = 'claude-sonnet-5-thinking',
       envVarName = 'UNOROUTER_API_KEY',
       customParams = [],
     } = req.body || {};
 
     const appliedParams = buildCustomParamsObject(customParams);
+    const targetModel =
+      modelId || (provider === 'uno-router' ? 'claude-sonnet-5-thinking' : 'deepseek-flash');
     const resolvedBaseUrl =
       provider === 'gemini'
         ? 'https://generativelanguage.googleapis.com'
@@ -288,15 +268,69 @@ app.post('/api/ai/test-endpoint', async (req, res) => {
     const apiKey = resolveServerApiKey(provider, envVarName);
     const hasServerSecret = Boolean(apiKey);
 
+    if (hasServerSecret && (provider === 'uno-router' || resolvedBaseUrl.includes('unorouter.com'))) {
+      try {
+        const pingResponse = await fetch(resolvedBaseUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: targetModel,
+            messages: [{ role: 'user', content: 'ping' }],
+            stream: false,
+          }),
+        });
+
+        const pingData: any = await pingResponse.json().catch(() => ({}));
+
+        if (pingResponse.ok) {
+          return res.json({
+            ok: true,
+            providerUsed: `${provider} (${targetModel})`,
+            resolvedBaseUrl,
+            modelId: targetModel,
+            appliedParams,
+            message: `Connected & Authenticated to UnoRouter! Model "${targetModel}" is live and ready to generate workflows.`,
+          });
+        }
+
+        if (pingData?.error?.code === 'consent_required') {
+          const consentMatch = pingData.error.message.match(/https:\/\/unorouter\.com\/consents\?[^;,\s]+/);
+          const consentUrl = consentMatch ? consentMatch[0] : `https://unorouter.com/consents?model=${encodeURIComponent(targetModel)}`;
+          return res.json({
+            ok: true,
+            requiresConsent: true,
+            consentUrl,
+            providerUsed: `${provider} (${targetModel})`,
+            resolvedBaseUrl,
+            modelId: targetModel,
+            appliedParams,
+            message: `UnoRouter API Key is active & valid! Provider consent required for "${targetModel}". Click the consent link to enable: ${consentUrl}`,
+          });
+        }
+
+        if (pingResponse.status === 401 || pingResponse.status === 403) {
+          return res.status(401).json({
+            ok: false,
+            message: `UnoRouter Authentication Failed: ${pingData?.error?.message || 'Invalid API Key'}.`,
+          });
+        }
+      } catch (pingErr: any) {
+        console.warn('UnoRouter ping warning:', pingErr?.message);
+      }
+    }
+
     return res.json({
       ok: true,
       providerUsed: `${provider} (${apiFormat.toUpperCase()})`,
       resolvedBaseUrl,
-      modelId,
+      modelId: targetModel,
       appliedParams,
       message: hasServerSecret
-        ? `Ready & Authenticated: ${resolvedBaseUrl} -> model "${modelId}" (${envVarName} active)`
-        : `Endpoint configured: ${resolvedBaseUrl} -> model "${modelId}". (Set ${envVarName} in environment secrets for live external calls; Gemini fallback active).`,
+        ? `Ready & Authenticated: ${resolvedBaseUrl} -> model "${targetModel}" (${envVarName} active)`
+        : `Endpoint configured: ${resolvedBaseUrl} -> model "${targetModel}". (Set ${envVarName} in environment secrets for live external calls; Gemini fallback active).`,
     });
   } catch (error: any) {
     return res.status(500).json({
@@ -316,7 +350,7 @@ app.post('/api/ai/generate', async (req, res) => {
       customBaseUrl = 'https://api.unorouter.com/v1/chat/completions',
       anthropicBaseUrl = 'https://api.unorouter.com/anthropic',
       apiFormat = 'openai',
-      modelId = 'deepseek-flash',
+      modelId = 'claude-sonnet-5-thinking',
       temperature = 0.4,
       envVarName = 'UNOROUTER_API_KEY',
       customParams = [],
@@ -338,7 +372,9 @@ app.post('/api/ai/generate', async (req, res) => {
       const targetModel =
         modelId && !modelId.startsWith('gemini')
           ? modelId
-          : provider === 'deepseek' || provider === 'uno-router'
+          : provider === 'uno-router'
+          ? 'claude-sonnet-5-thinking'
+          : provider === 'deepseek'
           ? 'deepseek-flash'
           : 'gpt-4o-mini';
 
@@ -413,6 +449,7 @@ app.post('/api/ai/generate', async (req, res) => {
               });
 
               if (!extResponse.ok) {
+                // Retry without response_format if rejected by model
                 extResponse = await fetch(endpoint, {
                   method: 'POST',
                   headers: {
@@ -430,9 +467,19 @@ app.post('/api/ai/generate', async (req, res) => {
                   const parsed = extractJsonObject(content);
                   return res.json({
                     ...parsed,
-                    providerUsed: `${provider} (${targetModel})`,
+                    providerUsed: `UnoRouter (${targetModel})`,
                   });
                 }
+              } else {
+                const errJson = await extResponse.json().catch(() => null);
+                if (errJson?.error?.code === 'consent_required') {
+                  const consentUrl = `https://unorouter.com/consents?model=${encodeURIComponent(targetModel)}`;
+                  return res.status(403).json({
+                    error: `UnoRouter requires 1-time consent for ${targetModel}. Please open ${consentUrl} to enable, then retry.`,
+                    consentUrl,
+                  });
+                }
+                console.warn('External model response not ok:', errJson || extResponse.statusText);
               }
             } catch (extErr) {
               console.warn(
