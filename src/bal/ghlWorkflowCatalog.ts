@@ -664,6 +664,15 @@ export const GHL_BUILTIN_ACTIONS: LibraryNodeTemplate[] = [
     'action: outboundHttpRequest',
     'Sends an outbound HTTP request (POST, GET, PUT, DELETE) with custom headers and payloads to external endpoints'
   ),
+  makeGhlNode(
+    'ghl_act_return_webhook',
+    'Flow Control & Internal Tools',
+    'action',
+    'webhook',
+    'Return to Webhook (Respond to Inbound Webhook)',
+    'action: returnWebhookResponse',
+    'Returns custom status codes, headers, or JSON body back to the inbound webhook caller'
+  ),
 
   // --- Category: Contact & CRM Management Nodes ---
   makeGhlNode(

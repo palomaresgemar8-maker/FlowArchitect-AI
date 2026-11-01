@@ -206,7 +206,14 @@ export const N8N_FULL_INTEGRATIONS_CATALOG: LibraryNodeTemplate[] = [
 
   // Core HTTP & Network
   makeCore('core_http_request', 'HTTP & Core Network', 'action', 'globe', 'HTTP Request (REST API)', 'n8n-nodes-base.httpRequest', 'http:ActionSendData', 'Webhooks Custom Request', 'GHL Custom Webhook POST', 'action: httpRequest (GET/POST/PUT)', 'Universal REST/HTTP client with cURL import, pagination, and auth', 7),
-  makeCore('core_respond_webhook', 'HTTP & Core Network', 'action', 'terminal', 'Respond to Webhook', 'n8n-nodes-base.respondToWebhook', 'gateway:WebhookResponse', 'Webhooks Response', 'GHL Webhook Response', 'action: respondToWebhook (JSON)', 'Returns custom status codes, headers, or JSON to the webhook caller', 3),
+  makeCore('core_respond_webhook', 'HTTP & Core Network', 'action', 'webhook', 'Return to Webhook (Respond to Webhook)', 'n8n-nodes-base.respondToWebhook', 'gateway:WebhookResponse', 'Webhooks Response', 'GHL Webhook Response', 'action: respondToWebhook (JSON / Return)', 'Returns custom status codes, headers, or JSON body back to the inbound webhook caller (Return to Webhook)', 3, {
+    defaultLabel: {
+      n8n: 'Return to Webhook',
+      make: 'Webhook Response',
+      zapier: 'Return Webhook Response',
+      ghl: 'Return Webhook Response',
+    },
+  }),
   makeCore('core_graphql', 'HTTP & Core Network', 'action', 'code', 'GraphQL Request', 'n8n-nodes-base.graphql', 'graphql:Query', 'GraphQL Request', 'GHL GraphQL Webhook', 'action: graphqlQueryOrMutation', 'Executes typed GraphQL queries and mutations with variables', 5),
   makeCore('core_ssh_ftp_command', 'HTTP & Core Network', 'action', 'terminal', 'SSH / SFTP / Execute Command', 'n8n-nodes-base.ssh', 'ssh:ExecuteCommand', 'SSH Runner', 'GHL Remote Script', 'action: execCommand / sftpUpload', 'Runs remote shell commands over SSH or transfers files via FTP/SFTP', 6),
   makeCore('core_rss_read', 'HTTP & Core Network', 'action', 'globe', 'RSS Read (Fetch Feed)', 'n8n-nodes-base.rssFeedRead', 'rss:ReadFeed', 'RSS by Zapier', 'GHL RSS Feed Read', 'action: fetchFeedItems', 'Fetches and parses syndication items from any RSS or Atom feed', 3),

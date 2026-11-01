@@ -7,7 +7,7 @@ import {
   useReactFlow,
   type EdgeProps,
 } from '@xyflow/react';
-import { X, MoveVertical, Plus } from 'lucide-react';
+import { Trash2, MoveVertical, Plus } from 'lucide-react';
 import { useWorkflowStore } from '../../bal/useWorkflowStore';
 import { buildN8nLoopBackPath } from './FlexibleConnectionLine';
 
@@ -236,7 +236,7 @@ export const DeletableWorkflowEdge: React.FC<EdgeProps> = ({
             </span>
           )}
 
-          {/* Delete Wire (X) button */}
+          {/* Delete Wire (Trashcan) button */}
           <button
             type="button"
             title={isAiSubNodeEdge ? 'Disconnect sub-node' : 'Delete this connection wire'}
@@ -252,7 +252,7 @@ export const DeletableWorkflowEdge: React.FC<EdgeProps> = ({
                 : 'opacity-85 hover:opacity-100 hover:scale-110 bg-slate-900/95 border-slate-600 text-slate-300 hover:bg-rose-600 hover:border-rose-400 hover:text-white'
             }`}
           >
-            <X className="w-3 h-3" />
+            <Trash2 className="w-2.5 h-2.5" />
           </button>
 
           {/* Insert Step (+) button: ONLY on standard workflow pipeline wires, NOT on AI Sub-Node sockets! */}

@@ -1230,7 +1230,8 @@ export const NodeLibrarySidebar: React.FC = () => {
             <div className="space-y-0.5">
               {N8N_FULL_INTEGRATIONS_CATALOG.filter(
                 (t) =>
-                  t.nodeGroup === 'core' && t.category === 'Flow Control & Logic'
+                  t.nodeGroup === 'core' &&
+                  (t.category === 'Flow Control & Logic' || t.id === 'core_respond_webhook')
               ).map((tpl) => renderNodeRow(tpl))}
             </div>
           ) : view.type === 'data_transformation' ? (

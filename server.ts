@@ -1,4 +1,5 @@
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import fs from 'fs';
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -7,8 +8,28 @@ import { GoogleGenAI, Type } from '@google/genai';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();
-const PORT = 3000;
+// Search for .env file: check next to executable (portable app), current working directory, and app directory
+const possibleEnvPaths = [
+  process.execPath ? path.join(path.dirname(process.execPath), '.env') : '',
+  path.join(process.cwd(), '.env'),
+  path.join(__dirname, '.env'),
+  path.join(__dirname, '..', '.env'),
+].filter(Boolean);
+
+let envLoaded = false;
+for (const envPath of possibleEnvPaths) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+    envLoaded = true;
+    break;
+  }
+}
+if (!envLoaded) {
+  dotenv.config();
+}
+
+export const app = express();
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: '25mb' }));
 
@@ -658,25 +679,95 @@ app.post('/api/ai/transcribe', async (req, res) => {
   }
 });
 
-async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
+function getDistPath(): string {
+  const candidatePaths: string[] = [
+    path.join(__dirname, 'dist'),
+    path.join(__dirname, '..', 'dist'),
+    path.join(process.cwd(), 'dist'),
+  ];
+
+  if ((process as any).resourcesPath) {
+    candidatePaths.unshift(
+      path.join((process as any).resourcesPath, 'dist'),
+      path.join((process as any).resourcesPath, 'app', 'dist'),
+      path.join((process as any).resourcesPath, 'app.asar', 'dist')
+    );
+  }
+
+  for (const candidate of candidatePaths) {
+    if (fs.existsSync(path.join(candidate, 'index.html'))) {
+      console.log(`[FlowArchitect] Resolved static dist path: ${candidate}`);
+      return candidate;
+    }
+  }
+  console.warn(`[FlowArchitect] Warning: index.html not found in candidate paths, fallback to: ${path.join(__dirname, 'dist')}`);
+  return path.join(__dirname, 'dist');
+}
+
+export async function startServer(preferredPort: number = PORT): Promise<{ app: express.Express; server: any; port: number }> {
+  if (process.env.NODE_ENV !== 'production' && !process.env.SERVE_STATIC) {
+    try {
+      const vitePkg = '' + 'vite';
+      const { createServer: createViteServer } = await import(vitePkg);
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } catch {
+      const distPath = getDistPath();
+      app.use(express.static(distPath));
+      app.get('*', (_req, res) => {
+        res.sendFile(path.join(distPath, 'index.html'));
+      });
+    }
   } else {
-    const distPath = path.join(__dirname, 'dist');
+    const distPath = getDistPath();
     app.use(express.static(distPath));
     app.get('*', (_req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`FlowArchitect AI server listening on http://0.0.0.0:${PORT}`);
+  return new Promise((resolve, reject) => {
+    const server = app.listen(preferredPort, '0.0.0.0', () => {
+      const addr = server.address();
+      const actualPort = typeof addr === 'object' && addr ? addr.port : preferredPort;
+      console.log(`FlowArchitect AI server listening on http://0.0.0.0:${actualPort}`);
+      resolve({ app, server, port: actualPort });
+    });
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.warn(`Port ${preferredPort} in use, trying random available port...`);
+        const fallbackServer = app.listen(0, '0.0.0.0', () => {
+          const addr = fallbackServer.address();
+          const fallbackPort = typeof addr === 'object' && addr ? addr.port : 0;
+          console.log(`FlowArchitect AI server listening on fallback port http://0.0.0.0:${fallbackPort}`);
+          resolve({ app, server: fallbackServer, port: fallbackPort });
+        });
+        fallbackServer.on('error', reject);
+      } else {
+        reject(err);
+      }
+    });
   });
 }
 
-startServer();
+// Auto-start server when run directly (CLI / dev mode, not inside Electron or Vercel serverless)
+const isElectron = Boolean(
+  (process.versions as any)?.electron ||
+  process.env.ELECTRON_RUN === 'true'
+);
+const isVercel = Boolean(process.env.VERCEL);
+
+const isDirectRun = !isElectron && !isVercel && (
+  !process.send || process.env.RUN_STANDALONE === 'true'
+);
+
+if (isDirectRun) {
+  startServer().catch((err) => {
+    console.error('Failed to start server:', err);
+  });
+}
+
+export default app;
